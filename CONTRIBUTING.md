@@ -21,4 +21,6 @@ Use Obsidian’s public APIs and theme variables. Keep domain calculations indep
 
 The `minimatch` override pins affected lint-tool dependencies to the patched 11.x API. `npm audit` and the official lint rules are checked when updating development dependencies.
 
+Gallery captures use `npm run screenshots:capture` in the isolated runtime; `npm run screenshots:check` verifies dimensions and file limits, and `npm run screenshots:package` makes an upload ZIP. See the [gallery guide](docs/images/gallery/README.md).
+
 For a release, follow [RELEASING.md](docs/RELEASING.md). Contributions are provided under the repository’s [0BSD license](LICENSE).

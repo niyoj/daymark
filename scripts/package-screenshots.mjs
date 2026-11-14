@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+execFileSync(process.execPath,['scripts/check-screenshots.mjs'],{stdio:'ignore'});
+const {version}=JSON.parse(await fs.readFile('manifest.json','utf8'));
+await fs.mkdir('dist',{recursive:true});
+const archive=path.resolve(`dist/daymark-community-screenshots-${version}.zip`);
+await fs.rm(archive,{force:true});
+execFileSync('zip',['-q','-r',archive,'desktop','mobile','README.md'],{cwd:'docs/images/gallery'});
+console.log(`Ready: dist/daymark-community-screenshots-${version}.zip`);

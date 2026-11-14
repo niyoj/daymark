@@ -1,9 +1,9 @@
 // Captures the real plugin with fictional data in the isolated runtime vault.
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import {emptyData,createRoutine,localDate,addDays,dueTasks,toggleCheckin,setFreeze} from '../src/domain.ts';
+import {makeDemoData} from './demo-data.mjs';
 const targets = await (await fetch('http://127.0.0.1:9231/json/list')).json();
-const socket = new WebSocket(targets.find(target => target.type === 'page').webSocketDebuggerUrl);
+const socket = new WebSocket(targets.find(target => target.type === 'page' && target.url === 'app://obsidian.md/index.html').webSocketDebuggerUrl);
 await new Promise((resolve, reject) => { socket.onopen = resolve; socket.onerror = reject; });
 let sequence = 0;
 const pending = new Map();
@@ -21,19 +21,7 @@ async function evaluate(expression) {
   return response.result.value;
 }
 
-const today=localDate(),daily=[0,1,2,3,4,5,6];
-let data=emptyData();
-for(const [name,color,tasks]of [
- ['Morning ritual','#249c03',[{name:'Stretch for 5 minutes',weekdays:daily},{name:'Read 10 pages',weekdays:daily},{name:'Plan the day',weekdays:daily}]],
- ['Move your body','#329999',[{name:'Take a mindful walk',weekdays:[1,3,5,6]}]],
- ['Make something','#249cff',[{name:'Write a little every day',weekdays:daily}]],
- ['Evening reset','#a64ca6',[{name:'Review notes',weekdays:[1,2,3,4,5]},{name:'Put the phone away',weekdays:daily}]],
-])data=createRoutine(data,{name,color,tasks},addDays(today,-120));
-for(let n=120;n>=0;n--){const date=addDays(today,-n);for(const [i,routine]of data.routines.entries())for(const[j,task]of dueTasks(data,routine.id,date).entries()){
- const complete=n===0?i===0&&j<2:n<(9-i)?true:(n+i)%11!==0&&(n+i+j)%7!==0;
- if(complete)data=toggleCheckin(data,task.id,date,today);
-}}
-const freezeDate=addDays(today,-9);data.checkins[freezeDate]={[data.routines[0].tasks[0].id]:true};data=setFreeze(data,data.routines[0].id,freezeDate,true,today);
+const {data} = makeDemoData();
 let backup;const notes=[];
 const settle=()=>evaluate('new Promise(r=>setTimeout(r,180))');
 async function capture(name,selector){await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:1,y:1});await settle();const params={format:'png'};if(selector)params.clip=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:Math.min(r.height,innerHeight-r.y),scale:1}})()`);const image=await send('Page.captureScreenshot',params);await fs.writeFile('docs/images/'+name+'.png',Buffer.from(image.data,'base64'));}

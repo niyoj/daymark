@@ -12,10 +12,13 @@
     "package": "npm run build && node scripts/package.mjs",
     "pretest": "node esbuild.config.mjs production",
     "lint": "eslint .",
-    "check": "npm run lint && npm run build && npm test && node scripts/check-release.mjs",
+    "check": "npm run lint && npm run build && npm test && node scripts/check-release.mjs && npm run screenshots:check",
     "test:ui": "node scripts/polish-ui-check.mjs",
     "test:export-ui": "node scripts/export-ui-check.mjs",
-    "test:board-stats-ui": "node scripts/board-stats-ui-check.mjs"
+    "test:board-stats-ui": "node scripts/board-stats-ui-check.mjs",
+    "screenshots:capture": "node scripts/capture-gallery.mjs",
+    "screenshots:check": "node scripts/check-screenshots.mjs",
+    "screenshots:package": "node scripts/package-screenshots.mjs"
   },
   "devDependencies": {
     "@types/node": "20.19.43",

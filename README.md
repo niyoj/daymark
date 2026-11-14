@@ -2,7 +2,9 @@
 
 Track habits and multi-task routines inside Obsidian. Check off today’s tasks in a sidebar, follow your streaks on a colorful board, and place completion heatmaps anywhere in your notes.
 
-![Habit Board in a note beside the Today checklist](docs/images/overview.png)
+![Habit Board in a note beside the Today checklist](docs/images/gallery/desktop/01-habit-board-and-today.png)
+
+[View the desktop and mobile screenshot gallery](docs/images/gallery/README.md).
 
 Created by **[niyoj](https://github.com/niyoj)**. Free, local, and open source. No account, subscription, telemetry, or network connection is required by the plugin.
 

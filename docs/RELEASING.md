@@ -35,7 +35,7 @@ Suggested listing text:
 
 > Track habits and routines with daily checklists, streak boards, and completion heatmaps inside your notes.
 
-Start with `docs/images/overview.png` as a desktop screenshot (1200 × 800). The README contains copyable blocks for all four views and explains the empty-block default. Other images in `docs/images/` show actual UI with fictional demo records.
+Use the five images in `docs/images/gallery/desktop/` (1200 × 800, 3:2) and the five in `docs/images/gallery/mobile/` (900 × 1600, 9:16). Every PNG is under 5 MB. The [gallery guide](images/gallery/README.md) lists the upload order and documents the emulated mobile previews. The README contains copyable blocks for all four views and explains the empty-block default. Other images in `docs/images/` show actual UI with fictional demo records.
 
 The optional Scriptable companion is separate from the plugin’s core functionality. Keep the physical iOS/Android and widget-access testing limitations clear until device tests have been completed.
 
