@@ -19,6 +19,13 @@ class Element {
     toggle: (name: string, on: boolean) => { this.className = this.className.split(' ').filter(n => n !== name).join(' ') + (on ? ' '+name : ''); },
   };
   constructor(tag: string) { this.tagName = tag; }
+  createEl(tag: string, options: { cls?: string; text?: string } = {}) {
+    const child = new Element(tag);
+    child.className = options.cls ?? ''; child.textContent = options.text ?? '';
+    this.append(child); return child;
+  }
+  setCssProps(props: Record<string,string>) { Object.assign(this.style, props); }
+  setCssStyles(styles: Record<string,string>) { Object.assign(this.style, styles); }
   append(child: Element) { child.parent = this; this.children.push(child); }
   replaceChildren() { this.children = []; }
   remove() { if (this.parent) this.parent.children = this.parent.children.filter(child => child !== this); }

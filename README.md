@@ -21,7 +21,7 @@ Created by **[niyoj](https://github.com/niyoj)**. Free, local, and open source. 
 
 Daymark Habits is being prepared for the Obsidian Community directory. Until the listing is approved, install it manually:
 
-1. Download **`niyoj-daymark-0.2.1.zip`** from the [latest release](https://github.com/niyoj/daymark/releases/latest).
+1. Download **`niyoj-daymark-0.2.2.zip`** from the [latest release](https://github.com/niyoj/daymark/releases/latest).
 2. Extract the `niyoj-daymark` folder into your vault’s `.obsidian/plugins/` folder. It must contain `main.js`, `manifest.json`, and `styles.css` directly inside it.
 3. Restart Obsidian or reload community plugins, then enable **Daymark Habits** under **Settings → Community plugins**.
 4. Open the command palette and run **Daymark Habits: Open Today**.

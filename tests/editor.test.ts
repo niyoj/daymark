@@ -11,6 +11,13 @@ class Element {
   ownerDocument = document;
   classList = { add: (...names: string[]) => { this.className += ' '+names.join(' '); } };
   constructor(tag:string) { this.tagName=tag; }
+  createEl(tag:string, options:{cls?:string;text?:string}={}) {
+    const child=new Element(tag);
+    child.className=options.cls??'';child.textContent=options.text??'';
+    this.append(child);return child;
+  }
+  setCssProps(props:Record<string,string>) { Object.assign(this.style,props); }
+  setCssStyles(styles:Record<string,string>) { Object.assign(this.style,styles); }
   append(child:Element) { this.children.push(child); child.parent=this; }
   replaceChildren() { this.children=[]; }
   setAttribute(key:string,value:string) { this.attributes[key]=value; }

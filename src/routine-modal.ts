@@ -7,8 +7,7 @@ interface TaskDraft { id?: string; key: string; name: string; days: Set<number>;
 const COLOR_NAMES = ['Green', 'Blue', 'Orange', 'Red', 'Purple', 'Grey', 'Teal'];
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 function node<K extends keyof HTMLElementTagNameMap>(parent: HTMLElement, tag: K, cls = '', text = ''): HTMLElementTagNameMap[K] {
-  const child = parent.ownerDocument.createElement(tag);
-  child.className = cls; child.textContent = text; parent.append(child); return child;
+  return parent.createEl(tag, { cls, text });
 }
 function action(parent: HTMLElement, text: string, callback: () => void, cls = 'dm-button is-quiet') {
   const button = node(parent, 'button', cls, text); button.type = 'button'; button.addEventListener('click', callback); return button;
@@ -49,18 +48,18 @@ export class RoutineModal extends Modal {
       if (!palette.hidden) palette.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus();
     }, 'dm-editor-color-toggle');
     colorToggle.setAttribute('aria-label', 'Choose routine color'); colorToggle.setAttribute('aria-expanded', 'false');
-    colorToggle.style.setProperty('--dm-selected-color', this.color);
+    colorToggle.setCssProps({ '--dm-selected-color': this.color });
     const palette = node(colorHost, 'div', 'dm-editor-palette'); palette.hidden = true;
     const paletteId = `dm-palette-${newId()}`; palette.id = paletteId; colorToggle.setAttribute('aria-controls', paletteId);
     palette.setAttribute('role', 'group'); palette.setAttribute('aria-label', 'Routine color');
     const paletteButtons: HTMLButtonElement[] = [];
     ROW_COLORS.forEach((color, index) => {
       const pick = action(palette, '', () => {
-        this.color = color; colorToggle.style.setProperty('--dm-selected-color', color);
+        this.color = color; colorToggle.setCssProps({ '--dm-selected-color': color });
         paletteButtons.forEach(button => button.setAttribute('aria-pressed', String(button === pick)));
         palette.hidden = true; colorToggle.setAttribute('aria-expanded', 'false'); colorToggle.focus?.();
       }, 'dm-color');
-      pick.style.backgroundColor = color; pick.setAttribute('aria-label', COLOR_NAMES[index] ?? color);
+      pick.setCssStyles({ backgroundColor: color }); pick.setAttribute('aria-label', COLOR_NAMES[index] ?? color);
       pick.setAttribute('aria-pressed', String(color.toLowerCase() === this.color.toLowerCase())); paletteButtons.push(pick);
     });
     palette.addEventListener('keydown', event => {

@@ -4,9 +4,8 @@ import { calendarProgress, weekdayPatterns, weeklyConsistency } from './analytic
 import { dayStatus, localDate, parseDate, routineAt } from './domain';
 import { focusedKey, restoreFocus, type CellSelection } from './detail-ui';
 
-function node(parent: HTMLElement, tag: string, cls: string, text: string) {
-    const element = parent.ownerDocument.createElement(tag);
-    element.className = cls; element.textContent = text; parent.append(element); return element;
+function node<K extends keyof HTMLElementTagNameMap>(parent: HTMLElement, tag: K, cls = '', text = ''): HTMLElementTagNameMap[K] {
+    return parent.createEl(tag, { cls, text });
 }
 function label(date: string) {
     return parseDate(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
@@ -33,7 +32,7 @@ export class CellDetailsModal extends Modal {
                 const text = node(row, 'div', 'dm-detail-routine-text', '');
                 node(text, 'strong', '', name);
                 node(text, 'span', 'dm-detail-note', `${status.done} of ${status.total} tasks complete · ${status.done === status.total ? 'Completed' : status.frozen ? 'Incomplete' : selection.date < localDate() ? 'Missed' : 'Remaining'}${status.frozen ? ' · Freeze used' : ''}`);
-                const action = node(row, 'button', 'dm-button is-quiet', 'Edit check-ins') as HTMLButtonElement;
+                const action = node(row, 'button', 'dm-button is-quiet', 'Edit check-ins');
                 action.type = 'button'; action.setAttribute('aria-label', `Edit check-ins for ${name}`); action.setAttribute('data-focus-key', routine.id);
                 action.addEventListener('click', () => { this.close(); this.openRoutine(routine.id, selection.date, this.returnFocus); });
                 this.keyboard(action);
@@ -58,7 +57,7 @@ export class CellDetailsModal extends Modal {
             }
         }
         const footer = node(root, 'div', 'dm-detail-actions', '');
-        const done = node(footer, 'button', 'dm-button is-primary', 'Done') as HTMLButtonElement;
+        const done = node(footer, 'button', 'dm-button is-primary', 'Done');
         done.type = 'button'; done.setAttribute('data-focus-key', 'done'); done.addEventListener('click', () => this.close()); this.keyboard(done);
         restoreFocus(root, focus);
     }

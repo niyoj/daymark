@@ -15,7 +15,7 @@ export interface CalendarViewState {
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MIN_WEEKS = 12;
 function node<K extends keyof HTMLElementTagNameMap>(parent: HTMLElement, tag: K, cls = '', text = ''): HTMLElementTagNameMap[K] {
-    const child = parent.ownerDocument.createElement(tag); child.className = cls; child.textContent = text; parent.append(child); return child;
+    return parent.createEl(tag, { cls, text });
 }
 function action(parent: HTMLElement, text: string, label: string, run: () => void, cls: string) {
     const b = node(parent, 'button', cls, text); b.type = 'button'; b.setAttribute('aria-label', label);
@@ -64,7 +64,7 @@ export function renderCalendar(parent: HTMLElement, data: HabitData, state: Cale
         action(actions, 'Jump to today', 'Jump to today', () => navigate(localDate()), 'dm-button is-quiet dm-jump-today');
         const scroll = node(parent, 'div', 'dm-board-scroll dm-calendar-scroll'); scroll.tabIndex = 0;
         scroll.setAttribute('aria-label', 'Daily routine completion calendar. Scroll horizontally for more weeks.');
-        const grid = node(scroll, 'div', 'dm-calendar-grid'); grid.style.setProperty('--dm-calendar-weeks', String(weeks.length));
+        const grid = node(scroll, 'div', 'dm-calendar-grid'); grid.setCssProps({ '--dm-calendar-weeks': String(weeks.length) });
         const months = node(grid, 'div', 'dm-calendar-months');
         const visibleMonth = node(months, 'span', 'dm-calendar-axis dm-calendar-visible-month'); visibleMonth.setAttribute('aria-label', 'Month at visible start');
         const monthBands: { month: string; box: HTMLElement; text: HTMLElement }[] = [];
@@ -75,7 +75,7 @@ export function renderCalendar(parent: HTMLElement, data: HabitData, state: Cale
             const text = node(label, 'span', 'dm-calendar-month-name', monthDate.toLocaleDateString(undefined, { month: 'short' }));
             monthBands.push({ month: weeks[i].month, box: label, text });
             label.title = monthDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-            label.setAttribute('data-month', weeks[i].month); label.style.gridColumn = `span ${after - i}`; i = after;
+            label.setAttribute('data-month', weeks[i].month); label.setCssStyles({ gridColumn: `span ${after - i}` }); i = after;
         }
         const columns = node(grid, 'div', 'dm-calendar-columns');
         const weekdays = node(columns, 'div', 'dm-calendar-week dm-calendar-day-labels');
@@ -99,7 +99,7 @@ export function renderCalendar(parent: HTMLElement, data: HabitData, state: Cale
                 b.title = label; b.setAttribute('data-date', date); b.setAttribute('aria-pressed', String(state.selected === date));
                 b.setAttribute('data-detail-key', date); b.setAttribute('aria-haspopup', 'dialog');
                 if (date === today) b.setAttribute('aria-current', 'date');
-                if (day.rate !== null) b.style.setProperty('--dm-calendar-intensity', `${9 + day.rate * 91}%`);
+                if (day.rate !== null) b.setCssProps({ '--dm-calendar-intensity': `${9 + day.rate * 91}%` });
                 buttons.push(b);
             }
             const weekNumber = calendarWeekNumber(week.start, week.month);
@@ -135,7 +135,7 @@ export function renderCalendar(parent: HTMLElement, data: HabitData, state: Cale
         node(legend, 'span', 'dm-analytics-legend-label', 'Completion');
         for (const rate of [null, 0, .25, .5, .75, 1]) {
             const item = node(legend, 'span', 'dm-analytics-legend-item');
-            const swatch = node(item, 'span', `dm-calendar-swatch${rate === null ? ' is-neutral' : ''}`); if (rate !== null) swatch.style.setProperty('--dm-calendar-intensity', `${9 + rate * 91}%`);
+            const swatch = node(item, 'span', `dm-calendar-swatch${rate === null ? ' is-neutral' : ''}`); if (rate !== null) swatch.setCssProps({ '--dm-calendar-intensity': `${9 + rate * 91}%` });
             node(item, 'span', '', rate === null ? 'Not scheduled' : `${rate * 100}%`);
         }
         if (!data.routines.length) node(parent, 'p', 'dm-task-meta', 'Create a routine to start your calendar.');

@@ -9,7 +9,7 @@ npm ci
 npm run check
 ```
 
-`npm run check` runs the official Obsidian ESLint rules, strict TypeScript, the production build, automated tests against the source and bundle, and release metadata/link checks. `npm run dev` watches source files. `npm run package` builds `dist/niyoj-daymark-0.2.1.zip` with the three installation assets.
+`npm run check` runs the official Obsidian ESLint rules, strict TypeScript, the production build, automated tests against the source and bundle, and release metadata/link checks. `npm run dev` watches source files. `npm run package` builds `dist/niyoj-daymark-0.2.2.zip` with the three installation assets.
 
 For manual testing, use a disposable vault and copy `main.js`, `manifest.json`, and `styles.css` into `<vault>/.obsidian/plugins/niyoj-daymark/`. Enable Daymark Habits, create a routine, and try the four Markdown views in Reading view and Live Preview. Avoid developing against your only copy of real habit records.
 

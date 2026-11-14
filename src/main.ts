@@ -11,11 +11,7 @@ import { CellDetailsModal } from './cell-details';
 import type { SettingDefinitionItem } from 'obsidian';
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function el<K extends keyof HTMLElementTagNameMap>(parent: HTMLElement, tag: K, cls = '', text = ''): HTMLElementTagNameMap[K] {
-    const e = parent.ownerDocument.createElement(tag);
-    e.className = cls;
-    e.textContent = text;
-    parent.append(e);
-    return e;
+    return parent.createEl(tag, { cls, text });
 }
 function button(parent: HTMLElement, text: string, run: () => void | Promise<void>, cls = 'dm-button') {
     const b = el(parent, 'button', cls, text);
@@ -175,7 +171,7 @@ class TodayView extends ItemView {
         progress.setAttribute('aria-valuenow', String(done));
         progress.setAttribute('aria-valuemin', '0');
         progress.setAttribute('aria-valuemax', String(total || 1));
-        el(progress, 'div', 'dm-progress-fill').style.width = `${total ? done / total * 100 : 0}%`;
+        el(progress, 'div', 'dm-progress-fill').setCssStyles({ width: `${total ? done / total * 100 : 0}%` });
         if (!this.plugin.data.routines.length) {
             const empty = el(root, 'div', 'dm-empty');
             el(empty, 'h3', '', 'Make space for what matters.');
@@ -184,7 +180,7 @@ class TodayView extends ItemView {
         }
         for (const r of this.plugin.data.routines) {
             const card = el(root, 'section', 'dm-routine');
-            card.style.setProperty('--dm-color', r.color);
+            card.setCssProps({ '--dm-color': r.color });
             card.setAttribute('role', 'group'); card.setAttribute('aria-label', r.name);
             const h = el(card, 'div', 'dm-routine-header');
             const names = el(h, 'div');
@@ -260,7 +256,7 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
         const scroll = el(host, 'div', 'dm-board-scroll');
         scroll.setAttribute('aria-label', paginated ? 'Habit history; use the previous and next date buttons' : 'Habit history; scroll horizontally for more dates');
         if (!paginated) scroll.tabIndex = 0;
-        const board = el(scroll, 'div', 'dm-board'); board.style.setProperty('--dm-days', String(pageDays));
+        const board = el(scroll, 'div', 'dm-board'); board.setCssProps({ '--dm-days': String(pageDays) });
         const months = el(board, 'div', 'dm-board-row dm-month-row');
         if (dates[0].slice(0, 7) === dates[dates.length - 1].slice(0, 7)) months.classList.add('is-single-month');
         const visibleMonth = el(months, 'span', 'dm-board-label is-heading dm-visible-month');
@@ -269,7 +265,7 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
             let endIndex = i + 1;
             while (endIndex < dates.length && dates[endIndex].slice(0, 7) === dates[i].slice(0, 7)) endIndex++;
             const label = el(months, 'span', 'dm-month-span', parseDate(dates[i]).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }));
-            label.style.gridColumn = `span ${endIndex - i}`;
+            label.setCssStyles({ gridColumn: `span ${endIndex - i}` });
             label.setAttribute('data-month', dates[i].slice(0, 7)); i = endIndex;
         }
         if (paginated) el(months, 'span', 'dm-routine-stats-heading', 'Routine stats');
@@ -290,7 +286,7 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
         const routineButtons: { id: string; button: HTMLButtonElement; icon: HTMLElement }[] = [];
         let showRoutineStats = () => {};
         for (const r of plugin.data.routines) {
-            const row = el(board, 'div', 'dm-board-row'); row.style.setProperty('--dm-color', r.color);
+            const row = el(board, 'div', 'dm-board-row'); row.setCssProps({ '--dm-color': r.color });
             row.setAttribute('data-routine-id', r.id);
             const isRoutineButton = paginated && !state.inlineStats;
             const label = isRoutineButton ? button(row, r.name, () => {
@@ -316,8 +312,8 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
                 b.setAttribute('aria-label', `${r.name}, ${pretty(date)}: ${s.done} of ${s.total}, ${s.state}`);
                 b.setAttribute('data-date', date); b.title = b.getAttribute('aria-label') ?? '';
                 const streak = streakStats(plugin.data, r.id, date).current;
-                b.style.setProperty('--dm-intensity', String(Math.min(85, 35 + streak * 7)) + '%');
-                const shade = streakColor(r.color, streak); if (shade) b.style.setProperty('--dm-cell-color', shade);
+                b.setCssProps({ '--dm-intensity': String(Math.min(85, 35 + streak * 7)) + '%' });
+                const shade = streakColor(r.color, streak); if (shade) b.setCssProps({ '--dm-cell-color': shade });
             }
             const stats = lifetimeStats?.get(r.id);
             if (stats) for (const [index, value] of routineStatValues(stats).entries()) {
@@ -454,7 +450,7 @@ class DateModal extends Modal {
         el(body, 'p', 'dm-detail-count', `${s.done} of ${s.total} tasks complete`);
         if (s.total) el(body, 'p', 'dm-detail-note', this.date > localDate() ? 'Future check-ins are read only.' : 'Select a task to check it off or correct its check-in.');
         const tasks = el(body, 'div', 'dm-detail-tasks');
-        tasks.style.setProperty('--dm-color', routineAt(r, this.date)?.color ?? r.color);
+        tasks.setCssProps({ '--dm-color': routineAt(r, this.date)?.color ?? r.color });
         for (const t of [...s.tasks].sort((a, b) => Number(this.plugin.data.checkins[this.date]?.[a.id] === true) - Number(this.plugin.data.checkins[this.date]?.[b.id] === true)))
             taskButton(tasks, this.plugin, t.id, t.name, this.date, this.date > localDate());
         if (!s.total) el(body, 'p', 'dm-detail-note', 'No tasks scheduled. This rest day leaves your streak intact.');

@@ -21,7 +21,7 @@ export function createAnalyticsState(): AnalyticsViewState { return { tab: 'week
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 function node<K extends keyof HTMLElementTagNameMap>(parent: HTMLElement, tag: K, cls = '', text = ''): HTMLElementTagNameMap[K] {
-    const child = parent.ownerDocument.createElement(tag); child.className = cls; child.textContent = text; parent.append(child); return child;
+    return parent.createEl(tag, { cls, text });
 }
 function dateLabel(date: string, year = false) {
     return parseDate(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', ...(year ? { year: 'numeric' as const } : {}) });
@@ -68,7 +68,7 @@ export function renderAnalytics(parent: HTMLElement, data: HabitData, state: Ana
                 for (const item of buttons) item.button.setAttribute('aria-pressed', String(item.button === b));
                 openDetails?.({ ...selection, start, end }, () => returnToCell(parent, JSON.stringify(selection)));
             }, `dm-cell dm-analytics-cell dm-pattern-cell${rate === null ? ' is-neutral' : ''}`);
-            if (rate !== null) b.style.setProperty('--dm-calendar-intensity', `${9 + rate * 91}%`);
+            if (rate !== null) b.setCssProps({ '--dm-calendar-intensity': `${9 + rate * 91}%` });
             b.title = label; b.setAttribute('aria-pressed', String(selected)); buttons.push({ button: b, selection });
             b.setAttribute('data-detail-key', JSON.stringify(selection)); b.setAttribute('aria-haspopup', 'dialog');
             if (tab === 'weekly') b.addEventListener('focus', () => {
@@ -79,7 +79,6 @@ export function renderAnalytics(parent: HTMLElement, data: HabitData, state: Ana
         };
         let updateMonth = () => {};
         if (tab === 'weekday') {
-            grid.style.setProperty('--dm-pattern-columns', '7');
             for (const routine of weekdayPatterns(data, start, end, today)) {
                 const row = node(grid, 'div', 'dm-pattern-row'); node(row, 'span', 'dm-pattern-label', routine.name).title = routine.name;
                 for (const day of routine.cells) cell(row, { kind: 'weekday', routineId: routine.routineId, weekday: day.weekday }, `${routine.name} · ${DAY_NAMES[day.weekday]}`, day.completed, day.scheduled, day.rate, day.frozen);
@@ -94,13 +93,13 @@ export function renderAnalytics(parent: HTMLElement, data: HabitData, state: Ana
                 return firstInRange.slice(0, 7);
             };
             const months = weekly.weeks.map(week => monthOf(week.start, week.end));
-            grid.style.setProperty('--dm-pattern-columns', String(weekly.weeks.length));
+            grid.setCssProps({ '--dm-pattern-columns': String(weekly.weeks.length) });
             const monthRow = node(grid, 'div', 'dm-pattern-row dm-pattern-months');
             const context = node(monthRow, 'span', 'dm-pattern-label dm-pattern-context'); context.setAttribute('aria-label', 'Month at visible start');
             const bands: { month: string; box: HTMLElement; text: HTMLElement }[] = [];
             for (let i = 0; i < months.length;) {
                 let after = i + 1; while (after < months.length && months[after] === months[i]) after++;
-                const date = parseDate(months[i] + '-01'), box = node(monthRow, 'span', 'dm-month-span dm-pattern-month'); box.style.gridColumn = `span ${after - i}`;
+                const date = parseDate(months[i] + '-01'), box = node(monthRow, 'span', 'dm-month-span dm-pattern-month'); box.setCssStyles({ gridColumn: `span ${after - i}` });
                 box.setAttribute('data-month', months[i]); box.title = date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
                 bands.push({ month: months[i], box, text: node(box, 'span', '', date.toLocaleDateString(undefined, { month: 'short' })) }); i = after;
             }
@@ -148,7 +147,7 @@ export function renderAnalytics(parent: HTMLElement, data: HabitData, state: Ana
         node(legend, 'span', 'dm-analytics-legend-label', 'Completion');
         for (const rate of [null, 0, .25, .5, .75, 1]) {
             const item = node(legend, 'span', 'dm-analytics-legend-item'); const swatch = node(item, 'span', `dm-calendar-swatch${rate === null ? ' is-neutral' : ''}`);
-            if (rate !== null) swatch.style.setProperty('--dm-calendar-intensity', `${9 + rate * 91}%`);
+            if (rate !== null) swatch.setCssProps({ '--dm-calendar-intensity': `${9 + rate * 91}%` });
             node(item, 'span', '', rate === null ? 'Not scheduled' : `${rate * 100}%`);
         }
         if (!data.routines.length) node(parent, 'p', 'dm-task-meta', 'Create a routine to start seeing your patterns.');
