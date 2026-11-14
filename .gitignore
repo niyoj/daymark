@@ -1,0 +1,27 @@
+node_modules/
+main.js
+*.js.map
+dist/
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Local vaults and records must never be published.
+/test-vault/
+.prototype-backups/
+habit-widget.json
+
+# Local agent tools and session artifacts.
+.agents/
+.claude/
+.codex/
+.impeccable/
+
+# Historical local verification captures; public images live in docs/images/.
+/docs/screenshots/
+/docs/*-REFINEMENT.md
+/docs/UI-REVIEW.md
+/docs/FENCED-VIEWS.md
+/docs/HABIT-BOARD-PAGING.md
+/docs/TODAY-DETAILS-POLISH.md

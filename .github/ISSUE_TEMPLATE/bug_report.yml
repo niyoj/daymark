@@ -1,0 +1,35 @@
+name: Bug report
+description: Report a problem with Daymark Habits.
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Daymark Habits version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Obsidian version and device
+      placeholder: Obsidian 1.15.1, macOS / Windows / Linux / iOS / Android
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include a minimal Markdown block if the problem involves a view.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshots or error messages
+      description: Remove private habit names and note contents before sharing.

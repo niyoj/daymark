@@ -1,0 +1,10 @@
+{
+  "id": "niyoj-daymark",
+  "name": "Daymark Habits",
+  "version": "0.1.0",
+  "minAppVersion": "1.8.0",
+  "description": "Track habits and routines with daily checklists, streak boards, and completion heatmaps inside your notes.",
+  "author": "niyoj",
+  "isDesktopOnly": false,
+  "authorUrl": "https://github.com/niyoj"
+}

@@ -1,0 +1,38 @@
+name: Release
+on:
+  push:
+    tags: ['[0-9]*.[0-9]*.[0-9]*']
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: node scripts/check-release.mjs "$GITHUB_REF_NAME"
+      - run: npm run package
+      - name: Publish required Obsidian assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release already exists; preserving its assets."
+            exit 0
+          fi
+          notes="docs/releases/$GITHUB_REF_NAME.md"
+          if [ -f "$notes" ]; then
+            gh release create "$GITHUB_REF_NAME" main.js manifest.json styles.css dist/*.zip --verify-tag --title "Daymark Habits $GITHUB_REF_NAME" --notes-file "$notes"
+          else
+            gh release create "$GITHUB_REF_NAME" main.js manifest.json styles.css dist/*.zip --verify-tag --title "Daymark Habits $GITHUB_REF_NAME" --generate-notes
+          fi
