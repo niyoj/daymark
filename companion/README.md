@@ -1,25 +1,45 @@
-# iPhone companion prototype
+# Daymark Today for Scriptable
 
-The plugin exports `habit-widget.json` into your vault. This Scriptable widget only reads that snapshot; it cannot change check-ins. It always labels the snapshot date and warns when the data is from an earlier date or more than two hours old.
+[Daymark-Today.js](Daymark-Today.js) is the supplied Home Screen companion script. It reads `habit-widget.json` and displays today's completed count, a progress ring, and remaining tasks in a dark green layout. It never changes check-ins.
 
-1. Install Scriptable on the iPhone and create a script named **Daymark** with the contents of `Scriptable.js`.
-2. Export the widget snapshot from Daymark in Obsidian.
-3. In Scriptable settings, create a **File Bookmark** named **Daymark** for the exported JSON in your vault. The optional widget parameter can select another bookmark name. A bookmark provides access without hardcoding another app's private path.
-4. Alternatively, copy the snapshot to **iCloud Drive / Scriptable / habit-widget.json**. This fallback is a manual copy and does not update when the original vault file changes.
-5. Run the script once in Scriptable, then add a medium Scriptable Home Screen widget and choose the Daymark script. Tapping it opens Obsidian.
+Follow the [iPhone setup steps in the main README](../README.md#set-up-the-scriptable-widget-on-iphone) to enable export, copy the script, create its bookmark, and add the widget.
 
-The snapshot must contain `date` (`YYYY-MM-DD`), `updatedAt` (ISO timestamp), and `remaining` / `completed` arrays with task `name` strings. A new date requires a new export from Obsidian. The widget requests refresh after 15 minutes; iOS determines the actual refresh time. A previously rendered widget may remain onscreen after midnight, so the visible snapshot date is always included.
+## Connection settings
 
-Before relying on the companion, test these on the actual iPhone:
+The defaults at the top of the script are:
 
-- Check a task, export, and run Scriptable; the counts and task names should change.
-- Close Obsidian fully, then run the script and verify its bookmark still reads the export.
-- Leave the previous day's export in place and run after midnight; the widget should ask to refresh and show the original date.
-- Temporarily move or corrupt the JSON; the widget should show connection instructions.
-- Compare small, medium, and large layouts, including long task names.
+```js
+const bookmarkName = "Daymark Widget";
+const exportFile = "habit-widget.json";
+const previewSize = "large";
+```
 
-This environment has not verified iOS bookmark persistence or Home Screen refresh behavior. Device testing remains required.
+In **Scriptable → Settings → File Bookmarks**, create **Daymark Widget** for either the JSON file or its containing folder. A folder bookmark looks for `habit-widget.json` directly inside that folder. The widget parameter is not used by this script; change `bookmarkName` in the code if you choose another name.
 
-For a fixed reminder, create a personal automation in Apple Shortcuts: **Time of Day → Daily → Show Notification** (“Open Daymark and check today's habits”). Optionally add **Open App → Obsidian**. This reminder does not inspect task completion, and notification behavior depends on the automation settings and iOS version.
+The file must be accessible to Scriptable through the iPhone's Files picker. Exporting on a desktop does not by itself give the iPhone access: synchronize the file or copy it to an accessible folder. A manual copy does not follow later changes to the original export.
 
-References: [Scriptable FileManager](https://docs.scriptable.app/filemanager/), [Scriptable ListWidget](https://docs.scriptable.app/listwidget/), [Apple automation triggers](https://support.apple.com/guide/shortcuts/event-triggers-apd932ff833f/ios).
+## Layout and refresh
+
+- The large iPhone layout shows up to four remaining tasks; the large iPad layout shows up to five. Other tasks appear as a `+N more` count. Small and medium layouts show up to two tasks.
+- `previewSize` controls the in-app preview. The Home Screen widget uses its actual selected size.
+- The supplied script can show optional `projectedStreak` values under **If done**. Daymark's current version 1 export does not include that field, so large rows show **—** and compact rows omit the streak. The README mockup's streak numbers are illustrative.
+- A different snapshot date shows **Out of date** instead of presenting old task counts as today's progress. This script does not warn about the age of a same-day export.
+- Refresh is requested after 15 minutes or at the next local midnight, whichever comes first. iOS decides when the widget actually runs. Obsidian must run to generate a newer export.
+
+## Troubleshooting
+
+| Message | What to check |
+| --- | --- |
+| **Connect Daymark** | Create the bookmark with the exact name **Daymark Widget**. |
+| **Export missing** | Run the export command and check the selected file or folder. |
+| **Export unavailable** | Regenerate the JSON in Obsidian; the script expects schema version 1 with `date`, `remaining`, and `completed`. |
+| **Can't read export** | Reconnect the bookmark and make sure the file is available locally or downloaded from iCloud. |
+| **Out of date** | Open Obsidian, refresh the export, and wait for the current file to reach the iPhone. |
+
+After setup, check a task in Obsidian and run Scriptable again to verify the counts change. Also test bookmark access after closing Obsidian, after midnight, and with long task names on the actual Home Screen. Automated tests check script behavior with a host adapter; physical iPhone bookmark persistence, rendering, and background refresh remain unverified here.
+
+## Earlier compact companion
+
+[Scriptable.js](Scriptable.js) remains available for existing installations. It uses a bookmark named **Daymark** (or the widget parameter), falls back to `iCloud Drive / Scriptable / habit-widget.json`, previews at medium size, and warns about exports older than two hours. Its setup differs from **Daymark Today**; use the new script for the README's widget layout.
+
+References: [Scriptable file bookmarks](https://docs.scriptable.app/filemanager/#-bookmarkedpath), [widget refresh](https://docs.scriptable.app/listwidget/#refreshafterdate), [Apple's Home Screen widget guide](https://support.apple.com/118610).

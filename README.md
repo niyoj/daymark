@@ -158,13 +158,32 @@ Automatic export refreshes after saved changes, on plugin startup, and when the 
 
 The snapshot contains **today’s scheduled tasks**, split into `remaining` and `completed`, with task IDs, names, routine names, colors, a local date, and an update timestamp. It is **not a full-history backup**. The filename is `habit-widget.json`, not `habit.json`.
 
-For the schema, examples, and verification, see [JSON export](docs/EXPORT.md). For the optional read-only iPhone Home Screen widget, see [Scriptable companion setup](companion/README.md). Scriptable/iCloud access and background refresh on a physical iPhone remain unverified; iOS determines widget refresh timing. When Obsidian is closed, Daymark cannot generate a fresh snapshot.
+### Set up the Scriptable widget on iPhone
+
+Use **Daymark Today**, the optional read-only Home Screen companion, to see your completed count, progress ring, and remaining tasks.
+
+<img src="docs/images/daymark-widget-mockup.png" alt="Illustrative Daymark Today widget mockup with a progress ring, remaining tasks, and routine colors" width="480">
+
+*Design mockup. The number of visible tasks depends on the widget size and device. The “If done” streak values are illustrative: the current Daymark export does not include `projectedStreak`, so this script shows **—** in that column.*
+
+1. **Enable JSON export in Obsidian.** Turn on **Settings → Daymark Habits → Export widget snapshot after changes**. Run **Daymark Habits: Export widget snapshot** once and confirm that `habit-widget.json` appears at your vault root.
+2. **Make the file available on your iPhone.** Locate the exported file in the iOS Files picker. If you export on another device, sync or copy the JSON to the iPhone first. A manual copy must be replaced whenever you want newer progress.
+3. **Create the script.** Install and open [Scriptable](https://scriptable.app/). Tap **+**, name the script **Daymark Today**, and paste the complete contents of [Daymark-Today.js](companion/Daymark-Today.js). Use GitHub’s **Raw** view to copy the code, then save the script.
+4. **Create the file bookmark.** In **Scriptable → Settings → File Bookmarks**, add a bookmark named exactly **Daymark Widget**. Select either `habit-widget.json` itself or the folder containing it. For a folder bookmark, `habit-widget.json` must be directly inside that folder. This gives the script access to the export. [Scriptable bookmark documentation](https://docs.scriptable.app/filemanager/#-bookmarkedpath).
+5. **Run it once.** Open **Daymark Today** in Scriptable and tap **Run ▶**. Check that the preview shows today’s tasks and counts. The default in-app preview is large; change `previewSize` to `"small"` to preview the compact layout.
+6. **Add it to the Home Screen.** Touch and hold an empty Home Screen area, choose **Edit → Add Widget**, select **Scriptable**, and add a **large** widget. Touch and hold the new widget, choose **Edit Widget**, and set **Script** to **Daymark Today**. Leave the parameter blank; this script uses the bookmark name configured in its code. You can also choose a small widget for a compact view. [Apple’s widget guide](https://support.apple.com/118610).
+
+Check off a task in Obsidian, let the export update, then run the script again to confirm the counts change. The widget only reads the snapshot; check-ins stay in Obsidian. A previous-day export displays **Out of date**. A same-day export can still lag if Obsidian is closed or file synchronization has not finished.
+
+The script requests a refresh in 15 minutes or at the next midnight, whichever comes first; [iOS controls the actual refresh timing](https://docs.scriptable.app/listwidget/#refreshafterdate). Physical iPhone bookmark access and Home Screen refresh remain unverified in this development environment.
+
+For connection troubleshooting and the earlier companion, see [Scriptable companion setup](companion/README.md). For the snapshot schema and export verification, see [JSON export](docs/EXPORT.md).
 
 ## Data and privacy
 
 Daymark stores routines, historical definitions, check-ins, and freezes in its local plugin `data.json`, normally at `.obsidian/plugins/niyoj-daymark/data.json`. It creates no account and sends no data over the network. Your notes are not rewritten when you change a view or routine.
 
-The JSON export is optional and contains task names and completion information. The optional Scriptable companion reads the exported file through an iCloud bookmark or a manually copied file; it does not modify check-ins.
+The JSON export is optional and contains task names and completion information. The optional Scriptable companion reads the exported file through a file bookmark or a manually copied file; it does not modify check-ins.
 
 Back up your vault **including its configuration folder** to preserve habit history. Device synchronization depends on your sync tool including the plugin’s data. Daymark does not reconcile simultaneous edits from multiple devices.
 
@@ -174,7 +193,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for building and testing, and [release pr
 
 Found a bug or have a feature request? [Open an issue](https://github.com/niyoj/daymark/issues). Include the Daymark version, Obsidian version, device, and a minimal example.
 
-Screenshots show fictional demo records in the real plugin. Light and dark themes are supported. Phone-width verification uses desktop viewport emulation.
+Plugin screenshots show fictional demo records in the real plugin; the Scriptable widget image is a design mockup. Light and dark themes are supported in Obsidian. Phone-width verification uses desktop viewport emulation.
 
 ## License and acknowledgements
 
