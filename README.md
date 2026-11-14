@@ -19,7 +19,7 @@ Created by **[niyoj](https://github.com/niyoj)**. Free, local, and open source. 
 
 Daymark Habits is being prepared for the Obsidian Community directory. Until the listing is approved, install it manually:
 
-1. Download **`niyoj-daymark-0.1.0.zip`** from the [latest release](https://github.com/niyoj/daymark/releases/latest).
+1. Download **`niyoj-daymark-0.2.0.zip`** from the [latest release](https://github.com/niyoj/daymark/releases/latest).
 2. Extract the `niyoj-daymark` folder into your vault’s `.obsidian/plugins/` folder. It must contain `main.js`, `manifest.json`, and `styles.css` directly inside it.
 3. Restart Obsidian or reload community plugins, then enable **Daymark Habits** under **Settings → Community plugins**.
 4. Open the command palette and run **Daymark Habits: Open Today**.
@@ -58,7 +58,20 @@ view: habit-board
 
 ![Habit Board with routine colors, month labels, and date navigation](docs/images/habit-board.png)
 
-The note’s available width determines how many complete date columns fit. The board pages with the arrows and has no internal scrolling. Select a day to inspect tasks, correct a check-in, or use an eligible freeze.
+**Habit Board is the default.** An empty `habit-board` block opens this view. The note’s available width determines how many complete date columns fit. The board pages with the arrows and has no internal scrolling. Select a day to inspect tasks, correct a check-in, or use an eligible freeze.
+
+**Routine stats** use each routine’s full history, independently of the dates you are browsing. Wide panes show four columns beside the grid, aligned with each routine. In narrow panes and on mobile, select a routine name (click, tap, Enter, or Space) to show its stats below the board.
+
+| Label | Meaning |
+| --- | --- |
+| **Current streak** | Scheduled days completed in the ongoing streak. |
+| **Longest streak** | The routine’s best streak across its full history. |
+| **Days completed** | The total number of scheduled days on which all due tasks were completed. |
+| **Completion rate** | Completed scheduled days divided by eligible scheduled days across the routine’s full history. |
+
+Completion rate includes its count, for example **84%** and **42 of 50 scheduled days**. Unscheduled days and future dates are excluded. An unfinished today joins the denominator only after the day ends; a completed today joins immediately. A frozen past day is scheduled but does not add a completion. With no eligible days, the rate is **—**. There is no Rate period selector.
+
+![Routine stats below the board in a narrow pane](docs/images/routine-stats-light-390.png)
 
 ### Weekday Patterns
 
@@ -72,7 +85,7 @@ view: weekday-patterns
 
 ![Weekday Patterns with seven weekday columns per routine](docs/images/weekday-patterns.png)
 
-**This is the default view.** An empty `habit-board` block renders Weekday Patterns. Add **`view: habit-board`** explicitly to get the streak board.
+**Weekday Patterns must now be selected explicitly.** If an older note relied on the empty block opening this heatmap, add `view: weekday-patterns` to keep that view.
 
 ### Weekly Consistency
 

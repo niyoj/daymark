@@ -1,6 +1,7 @@
-import { Plugin, ItemView, WorkspaceLeaf, Modal, Notice, MarkdownRenderChild, PluginSettingTab, Setting, normalizePath, setIcon, TFile } from 'obsidian';
-import { emptyData, localDate, addDays, dateRange, dueTasks, dayStatus, toggleCheckin, setFreeze, streakStats, widgetSnapshot, routineAt, freezeAllowance, parseDate, streakColor, type HabitData } from './domain';
-import { boardDaysForWidth } from './board-layout';
+import { Plugin, ItemView, WorkspaceLeaf, Modal, Notice, MarkdownRenderChild, PluginSettingTab, Setting, normalizePath, setIcon, TFile, Platform } from 'obsidian';
+import { emptyData, localDate, addDays, dateRange, dueTasks, dayStatus, toggleCheckin, setFreeze, streakStats, widgetSnapshot, routineAt, freezeAllowance, parseDate, streakColor, newId, type HabitData } from './domain';
+import { boardDaysForWidth, boardShowsInlineStats, BOARD_STATS_WIDTH } from './board-layout';
+import { lifetimeRoutineStats, routineStatValues, routineRateCount, ROUTINE_STAT_LABELS } from './routine-stats';
 const VIEW = 'daymark-today';
 import { RoutineModal } from './routine-modal';
 import { createAnalyticsState, renderAnalytics } from './analytics-view';
@@ -228,18 +229,20 @@ function taskButton(parent: HTMLElement, plugin: DaymarkPlugin, id: string, name
     el(b, 'span', 'dm-task-name', name);
     if (done) el(b, 'span', 'dm-task-state', 'Done').setAttribute('aria-hidden', 'true');
 }
-interface BoardState { end?: string; days?: number; scrollLeft?: number; followEnd?: boolean; lastToday?: string; cleanup?: () => void; }
+interface BoardState { end?: string; days?: number; scrollLeft?: number; followEnd?: boolean; lastToday?: string; inlineStats?: boolean; selectedRoutine?: string; detailId?: string; cleanup?: () => void; }
 function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, state: BoardState = {}) {
     const currentToday = localDate();
     if (state.end === state.lastToday && state.followEnd && state.lastToday !== currentToday) { state.end = currentToday; state.scrollLeft = undefined; }
     state.lastToday = currentToday;
     const paginated = count > 14;
+    const lifetimeStats = paginated ? new Map(plugin.data.routines.map(routine => [routine.id, lifetimeRoutineStats(plugin.data, routine.id, currentToday)])) : undefined;
     const host = el(parent, 'div', `dm-board-host${paginated ? ' is-paginated' : ''}`);
     const draw = (end: string, position?: number) => {
         state.cleanup?.();
         state.cleanup = undefined;
         state.end = end;
         host.replaceChildren();
+        host.classList.toggle('has-inline-stats', paginated && state.inlineStats === true);
         const today = localDate();
         const pageDays = paginated ? state.days ?? count : count;
         const dates = dateRange(addDays(end, 1 - pageDays), end);
@@ -267,6 +270,7 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
             label.style.gridColumn = `span ${endIndex - i}`;
             label.setAttribute('data-month', dates[i].slice(0, 7)); i = endIndex;
         }
+        if (paginated) el(months, 'span', 'dm-routine-stats-heading', 'Routine stats');
         const header = el(board, 'div', 'dm-board-row dm-column-headings');
         const nameHeader = el(header, 'span', 'dm-board-label is-heading', 'ROUTINE');
         const dateHeaders: HTMLElement[] = [];
@@ -277,9 +281,32 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
             d.title = pretty(date); d.setAttribute('data-date', date); dateHeaders.push(d);
             if (date === today) { d.classList.add('is-today'); d.setAttribute('aria-current', 'date'); }
         }
+        if (paginated) for (const [index, [label, description]] of ROUTINE_STAT_LABELS.entries()) {
+            const heading = el(header, 'span', `dm-board-stat-heading${index === 0 ? ' is-first' : ''}`, label);
+            heading.title = description;
+        }
+        const routineButtons: { id: string; button: HTMLButtonElement; icon: HTMLElement }[] = [];
+        let showRoutineStats = () => {};
         for (const r of plugin.data.routines) {
             const row = el(board, 'div', 'dm-board-row'); row.style.setProperty('--dm-color', r.color);
-            const label = el(row, 'span', 'dm-board-label', r.name); label.title = r.name;
+            row.setAttribute('data-routine-id', r.id);
+            const isRoutineButton = paginated && !state.inlineStats;
+            const label = isRoutineButton ? button(row, r.name, () => {
+                state.selectedRoutine = state.selectedRoutine === r.id ? undefined : r.id;
+                showRoutineStats();
+                if (state.selectedRoutine) host.querySelector<HTMLElement>('.dm-routine-stats-detail')?.scrollIntoView?.({ block: 'nearest' });
+            }, 'dm-board-label dm-board-routine-button') : el(row, 'span', 'dm-board-label', r.name);
+            label.title = r.name;
+            if (paginated && state.inlineStats) {
+                label.textContent = '';
+                el(label, 'span', 'dm-board-routine-name-text', r.name);
+            }
+            if (isRoutineButton) {
+                label.setAttribute('aria-label', `${r.name}: Routine stats`);
+                label.setAttribute('data-focus-key', `routine:${r.id}`);
+                const icon = el(label, 'span', 'dm-routine-stats-chevron'); icon.setAttribute('aria-hidden', 'true');
+                routineButtons.push({ id: r.id, button: label as HTMLButtonElement, icon });
+            }
             for (const date of dates) {
                 const s = dayStatus(plugin.data, r.id, date, today);
                 const b = button(row, s.frozen ? '❄' : s.state === 'partial' ? '·' : '', () => new DateModal(plugin, r.id, date, () => returnToCell(parent, `${r.id}:${date}`)).open(), `dm-cell is-${s.state === 'off' ? 'neutral' : s.state}${date === today ? ' is-today' : ''}${date.slice(8) === '01' ? ' is-month-start' : ''}`);
@@ -290,6 +317,41 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
                 b.style.setProperty('--dm-intensity', String(Math.min(85, 35 + streak * 7)) + '%');
                 const shade = streakColor(r.color, streak); if (shade) b.style.setProperty('--dm-cell-color', shade);
             }
+            const stats = lifetimeStats?.get(r.id);
+            if (stats) for (const [index, value] of routineStatValues(stats).entries()) {
+                const cell = el(row, 'span', `dm-board-stat${index === 0 ? ' is-first' : ''}`);
+                cell.setAttribute('aria-label', `${ROUTINE_STAT_LABELS[index][0]}: ${value}${index === 3 ? `, ${routineRateCount(stats)}` : ''}`);
+                el(cell, 'strong', 'dm-routine-stat-value', value);
+                if (index === 3) el(cell, 'span', 'dm-routine-stat-count', routineRateCount(stats));
+            }
+        }
+        if (paginated) {
+            const detail = el(host, 'section', 'dm-routine-stats-detail');
+            detail.id = state.detailId ??= `dm-routine-stats-${newId()}`;
+            for (const item of routineButtons) item.button.setAttribute('aria-controls', detail.id);
+            detail.setAttribute('aria-label', 'Routine stats'); detail.setAttribute('aria-live', 'polite'); detail.setAttribute('aria-atomic', 'true');
+            showRoutineStats = () => {
+                detail.replaceChildren();
+                const routine = plugin.data.routines.find(routine => routine.id === state.selectedRoutine);
+                detail.hidden = !routine || state.inlineStats === true;
+                for (const item of routineButtons) {
+                    item.button.setAttribute('aria-expanded', String(item.id === routine?.id));
+                    setIcon(item.icon, item.id === routine?.id ? 'chevron-up' : 'chevron-down');
+                }
+                if (!routine) return;
+                el(detail, 'h3', '', 'Routine stats');
+                el(detail, 'p', 'dm-routine-stats-name', routine.name);
+                const list = el(detail, 'dl', 'dm-routine-stats-list');
+                const stats = lifetimeStats!.get(routine.id)!;
+                for (const [index, value] of routineStatValues(stats).entries()) {
+                    const item = el(list, 'div', 'dm-routine-stat-item');
+                    const term = el(item, 'dt', '', ROUTINE_STAT_LABELS[index][0]); term.title = ROUTINE_STAT_LABELS[index][1];
+                    const description = el(item, 'dd'); el(description, 'strong', 'dm-routine-stat-value', value);
+                    if (index === 3) el(description, 'span', 'dm-routine-stat-count', routineRateCount(stats));
+                }
+                el(detail, 'p', 'dm-task-meta', 'Lifetime. Unfinished today is excluded from the completion rate.');
+            };
+            showRoutineStats();
         }
         const updateMonth = () => {
             let index = 0;
@@ -303,9 +365,10 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
         const fitPage = () => {
             if (!paginated || !scroll.isConnected || !scroll.clientWidth) return false;
             const labelWidth = nameHeader.getBoundingClientRect().width;
-            const needed = boardDaysForWidth(scroll.clientWidth, labelWidth, count);
-            if (needed === pageDays) return false;
-            state.days = needed; draw(end); return true;
+            const inlineStats = boardShowsInlineStats(scroll.clientWidth, Platform.isMobile);
+            const needed = boardDaysForWidth(scroll.clientWidth, labelWidth, count, inlineStats ? BOARD_STATS_WIDTH : 0);
+            if (needed === pageDays && inlineStats === (state.inlineStats === true)) return false;
+            state.days = needed; state.inlineStats = inlineStats; draw(end); return true;
         };
         if (!paginated) scroll.addEventListener('scroll', () => { if (!scroll.isConnected) return; state.scrollLeft = scroll.scrollLeft; state.followEnd = scroll.scrollWidth - scroll.clientWidth - scroll.scrollLeft < 2; updateMonth(); }, { passive: true });
         const place = () => {
@@ -325,7 +388,7 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
             });
             observer.observe(scroll); state.cleanup = () => observer.disconnect();
         }
-        el(host, 'p', 'dm-task-meta', 'Deeper color, longer streak. ❄ Frozen day. Tap a day to see or correct it.');
+        el(host, 'p', 'dm-task-meta', `Deeper color, longer streak. ❄ Frozen day. Tap a day to see or correct it.${paginated && !state.inlineStats ? ' Select a routine name for Routine stats.' : ''}`);
     };
     draw(state.end ?? localDate(), state.scrollLeft);
 }
@@ -343,6 +406,7 @@ class DaymarkBlockChild extends MarkdownRenderChild {
     onload() {
         this.containerEl.classList.add('dm-root', 'dm-block');
         const render = () => {
+            const focus = focusedKey(this.containerEl);
             if (this.options.error) {
                 this.containerEl.replaceChildren();
                 const message = el(this.containerEl, 'p', 'dm-notice', `${this.options.error} Available views: ${BLOCK_VIEWS.join(', ')}.`);
@@ -360,6 +424,7 @@ class DaymarkBlockChild extends MarkdownRenderChild {
             if (!this.plugin.data.routines.length)
                 el(this.containerEl, 'p', 'dm-empty', 'Create a habit in Daymark to start your board.');
             else renderBoard(this.containerEl, this.plugin, 28, this.boardState);
+            restoreFocus(this.containerEl, focus);
         };
         this.unsubscribe = this.plugin.subscribe(render);
         render();

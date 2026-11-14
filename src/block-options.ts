@@ -12,6 +12,6 @@ export function parseBlockOptions(source: string): BlockOptions {
     if (view !== undefined) return { error: 'Use only one view: option per block.' };
     view = match[1].trim().replace(/^(["'])(.*)\1$/, '$2');
   }
-  if (view === undefined) return { view: 'weekday-patterns' };
+  if (view === undefined) return { view: 'habit-board' };
   return BLOCK_VIEWS.includes(view as BlockView) ? { view: view as BlockView } : { error: `Unknown Daymark view: ${view || '(empty)'}.` };
 }

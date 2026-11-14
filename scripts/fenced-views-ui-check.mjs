@@ -32,11 +32,11 @@ try{
   if(await evaluate('app.vault.getName()')!=='daymark-runtime-vault')throw Error('Use isolated runtime vault only.');
   await evaluate('app.workspace.rightSplit.collapse();app.workspace.leftSplit.collapse()');
   await send('Emulation.setDeviceMetricsOverride',{width:390,height:900,deviceScaleFactor:1,mobile:false});
-  await openNote(['# My own heading','Personal text before the block.',fence('invalid-view'),fence(),'## My weekly heading',fence('weekly-consistency'),'Text after all views.'].join('\n\n'),3);
+  await openNote(['# My own heading','Personal text before the block.',fence('invalid-view'),fence('weekday-patterns'),'## My weekly heading',fence('weekly-consistency'),'Text after all views.'].join('\n\n'),3);
   const independent=await evaluate(`(async()=>{
     const assert=(v,m)=>{if(!v)throw Error(m)},root=__dmFenceCheck.root;
     const a=root.querySelector('[data-daymark-view="weekday-patterns"]'),b=root.querySelector('[data-daymark-view="weekly-consistency"]');
-    assert(a&&b,'Empty block renders weekday and explicit option renders weekly');
+    assert(a&&b,'Explicit weekday and weekly options render independently');
     assert(!root.querySelector('.dm-analytics-tabs'),'No view-switch navigation');
     assert(!app.workspace.getLeavesOfType('daymark-analytics').length&&!app.commands.commands['niyoj-daymark:open-analytics'],'Standalone Analytics is absent');
     const source=await app.vault.read(app.vault.getAbstractFileByPath(__dmFenceCheck.path));assert(source.includes('Personal text before the block.')&&source.includes('Text after all views.'),'Author text preserved');
@@ -50,12 +50,12 @@ try{
     assert(a.querySelectorAll('[aria-pressed=true]').length===1&&b.querySelectorAll('[aria-pressed=true]').length===1,'One selected cell per block');
     assert([...b.querySelectorAll('.dm-analytics-cell')].every(x=>!x.textContent),'Weekly cells have no numbers');
     const msg=root.querySelector('[role=alert]').textContent;for(const v of ['weekday-patterns','weekly-consistency','calendar-overview','habit-board'])assert(msg.includes(v),'Available view message');
-    return {emptyBlock:'weekday-patterns',independentSelections:true,independentScroll:true,invalidViewMessage:true,noStandalonePage:true};
+    return {explicitWeekdayPatterns:true,independentSelections:true,independentScroll:true,invalidViewMessage:true,noStandalonePage:true};
   })()`);
   await openNote(fence('calendar-overview'),1);
   await evaluate(`(()=>{const root=__dmFenceCheck.root,c=root.querySelector('.dm-analytics-cell.is-frozen');if(!c)throw Error('Missing calendar freeze');c.click();if(!c.title.includes('freeze'))throw Error('Missing calendar freeze tooltip');if(root.querySelector('.dm-analytics-detail'))throw Error('Calendar must not show bottom task viewer');[...document.querySelectorAll('.dm-cell-details button')].find(b=>b.textContent==='Done').click()})()`);
   await send('Emulation.setDeviceMetricsOverride',{width:1200,height:900,deviceScaleFactor:1,mobile:false});
-  await openNote('# My habit history\n\n'+fence('habit-board'),1);
+  await openNote('# My habit history\n\n'+fence(),1);
   const widths=[];
   for(const width of [1200,390]){
     await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});await frames();

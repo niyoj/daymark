@@ -77,7 +77,7 @@ async function smoke(production: boolean) {
   class ItemView { contentEl = new Element('div'); constructor(_leaf: unknown) {} }
   class MarkdownRenderChild { containerEl: Element; constructor(container: Element) { this.containerEl = container; } }
   (globalThis as any).__daymarkMock = { Plugin, Modal, ItemView, MarkdownRenderChild,
-    WorkspaceLeaf: class {}, TFile, Notice: class { constructor(value:string) { notices.push(value); } },
+    WorkspaceLeaf: class {}, TFile, Platform: { isMobile: false }, Notice: class { constructor(value:string) { notices.push(value); } },
     PluginSettingTab: class {}, Setting: class {}, normalizePath: (v:string)=>v,
     setIcon: (element: Element, name: string) => element.setAttribute('data-icon', name),
   };
@@ -111,7 +111,16 @@ async function smoke(production: boolean) {
     assert.equal(byClass(board,'dm-cell').length,28);
     const blocks: any[]=[];
     const renderBlock=(source:string)=>{const root=new Element('div');processor!(source,root,{addChild:(child:any)=>{blocks.push(child);child.onload();}});return root;};
-    const weekday=renderBlock('');
+    const defaultBoard=renderBlock('');
+    assert.equal(defaultBoard.getAttribute('data-daymark-view'),'habit-board');
+    assert.equal(byClass(defaultBoard,'dm-cell').length,28);
+    assert.equal(byClass(defaultBoard,'dm-routine-stats-detail')[0]!.hidden,true);
+    byClass(defaultBoard,'dm-board-routine-button')[0]!.fire('click');
+    assert.equal(byClass(defaultBoard,'dm-routine-stats-detail')[0]!.hidden,false);
+    assert.equal(byClass(defaultBoard,'dm-board-routine-button')[0]!.getAttribute('aria-expanded'),'true');
+    assert.equal(byClass(defaultBoard,'dm-routine-stat-value')[3]!.textContent,'—');
+    assert.equal(byClass(leaf.view.contentEl,'dm-board-stat').length,0,'Sidebar mini-board is unchanged');
+    const weekday=renderBlock('view: weekday-patterns');
     assert.equal(weekday.getAttribute('data-daymark-view'),'weekday-patterns');
     assert.equal(byClass(weekday,'dm-analytics-cell').length,7);
     assert.equal(byClass(weekday,'dm-analytics-detail').length,0);
@@ -162,13 +171,16 @@ async function smoke(production: boolean) {
     assert.equal(byClass(weekday,'dm-analytics-cell')[2]!.getAttribute('aria-pressed'),'true');
     assert.equal(byClass(weekly,'dm-analytics-cell')[0]!.getAttribute('aria-pressed'),'true');
     assert.equal(byClass(calendar,'dm-analytics-cell').at(-1)!.getAttribute('aria-pressed'),'true');
-    for(const block of blocks)block.onunload();
+    for(const block of blocks)if(block.containerEl!==defaultBoard)block.onunload();
 
     byClass(leaf.view.contentEl,'dm-task')[0]!.fire('click');
     await flush();
     assert.equal(byClass(leaf.view.contentEl,'dm-task')[0]!.getAttribute('aria-pressed'),'true');
     assert.equal(byClass(leaf.view.contentEl,'dm-check')[0]!.getAttribute('data-icon'),'check');
     assert.equal(byClass(leaf.view.contentEl,'dm-task-state')[0]!.textContent,'Done');
+    assert.equal(byClass(defaultBoard,'dm-routine-stat-value')[3]!.textContent,'100%');
+    assert.equal(byClass(defaultBoard,'dm-routine-stats-detail')[0]!.hidden,false,'Selected stats survive check-in refresh');
+    blocks.find(block=>block.containerEl===defaultBoard).onunload();
     assert.equal(byClass(board,'is-complete').length,1);
     await plugin.exportSnapshot();
     const snapshot = JSON.parse(writes['habit-widget.json']!);

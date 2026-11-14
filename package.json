@@ -1,6 +1,6 @@
 {
   "name": "daymark-habits",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Habit and routine tracking for Obsidian",
   "main": "main.js",
@@ -14,7 +14,8 @@
     "lint": "eslint .",
     "check": "npm run lint && npm run build && npm test && node scripts/check-release.mjs",
     "test:ui": "node scripts/polish-ui-check.mjs",
-    "test:export-ui": "node scripts/export-ui-check.mjs"
+    "test:export-ui": "node scripts/export-ui-check.mjs",
+    "test:board-stats-ui": "node scripts/board-stats-ui-check.mjs"
   },
   "devDependencies": {
     "@types/node": "20.19.43",

@@ -47,7 +47,7 @@ async function host(production: boolean, data = fixture(), enabled = false) {
   }
   const obsidian = { Plugin, ItemView: class {}, WorkspaceLeaf: class {}, Modal: class {}, MarkdownRenderChild: class {},
     PluginSettingTab: class {}, Setting: class {}, Notice: class { constructor(message: string) { notices.push(message); } },
-    normalizePath: (path: string) => path, setIcon() {}, TFile: File };
+    normalizePath: (path: string) => path, setIcon() {}, TFile: File, Platform: { isMobile: false } };
   const module = { exports: {} as any };
   vm.runInNewContext(await bundle(production), { module, require: () => obsidian, Date: FixedDate, window: { setInterval: (callback: () => void) => { timer = callback; return 1; } }, console });
   const plugin = new module.exports.default();

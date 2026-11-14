@@ -18,9 +18,14 @@ try{
     const root=document.querySelector('.markdown-preview-view .dm-root');
     root.querySelector('.dm-jump-today').click();await frames();
     const initialLast=[...root.querySelectorAll('.dm-date-label')].at(-1).getAttribute('data-date');
-    const crossing=[...root.querySelectorAll('.dm-month-span')].map(e=>e.getAttribute('data-month'));
-    assert(crossing.length>=2,'Current range should cross a month boundary');
     const initialFirst=root.querySelector('.dm-date-label').getAttribute('data-date');
+    let crossing=[];
+    for(let i=0;i<10;i++){
+      crossing=[...root.querySelectorAll('.dm-month-span')].map(e=>e.getAttribute('data-month'));
+      if(crossing.length>=2)break;
+      root.querySelector('[aria-label="Previous dates"]').click();await frames();
+    }
+    assert(crossing.length>=2,'History pages expose a clear month boundary');
     root.querySelector('[aria-label="Previous dates"]').click();await frames();
     const viewport=root.querySelector('.dm-board-scroll');
     const first=root.querySelector('.dm-date-label').getAttribute('data-date');
