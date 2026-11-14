@@ -1,7 +1,7 @@
 import { Plugin, ItemView, WorkspaceLeaf, Modal, Notice, MarkdownRenderChild, PluginSettingTab, Setting, normalizePath, setIcon, TFile, Platform } from 'obsidian';
 import { emptyData, localDate, addDays, dateRange, dueTasks, dayStatus, toggleCheckin, setFreeze, streakStats, widgetSnapshot, routineAt, freezeAllowance, parseDate, streakColor, newId, type HabitData } from './domain';
-import { boardDaysForWidth, boardShowsInlineStats, BOARD_STATS_WIDTH } from './board-layout';
-import { lifetimeRoutineStats, routineStatValues, routineRateCount, ROUTINE_STAT_LABELS } from './routine-stats';
+import { boardDaysForWidth, boardShowsInlineStats, boardShowsStackedLabels, BOARD_STATS_WIDTH } from './board-layout';
+import { lifetimeRoutineStats, routineStatValues, ROUTINE_STAT_LABELS } from './routine-stats';
 const VIEW = 'daymark-today';
 import { RoutineModal } from './routine-modal';
 import { createAnalyticsState, renderAnalytics } from './analytics-view';
@@ -229,7 +229,7 @@ function taskButton(parent: HTMLElement, plugin: DaymarkPlugin, id: string, name
     el(b, 'span', 'dm-task-name', name);
     if (done) el(b, 'span', 'dm-task-state', 'Done').setAttribute('aria-hidden', 'true');
 }
-interface BoardState { end?: string; days?: number; scrollLeft?: number; followEnd?: boolean; lastToday?: string; inlineStats?: boolean; selectedRoutine?: string; detailId?: string; cleanup?: () => void; }
+interface BoardState { end?: string; days?: number; scrollLeft?: number; followEnd?: boolean; lastToday?: string; inlineStats?: boolean; stackedLabels?: boolean; selectedRoutine?: string; detailId?: string; cleanup?: () => void; }
 function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, state: BoardState = {}) {
     const currentToday = localDate();
     if (state.end === state.lastToday && state.followEnd && state.lastToday !== currentToday) { state.end = currentToday; state.scrollLeft = undefined; }
@@ -243,6 +243,7 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
         state.end = end;
         host.replaceChildren();
         host.classList.toggle('has-inline-stats', paginated && state.inlineStats === true);
+        host.classList.toggle('has-stacked-labels', paginated && state.stackedLabels === true);
         const today = localDate();
         const pageDays = paginated ? state.days ?? count : count;
         const dates = dateRange(addDays(end, 1 - pageDays), end);
@@ -261,6 +262,7 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
         if (!paginated) scroll.tabIndex = 0;
         const board = el(scroll, 'div', 'dm-board'); board.style.setProperty('--dm-days', String(pageDays));
         const months = el(board, 'div', 'dm-board-row dm-month-row');
+        if (dates[0].slice(0, 7) === dates[dates.length - 1].slice(0, 7)) months.classList.add('is-single-month');
         const visibleMonth = el(months, 'span', 'dm-board-label is-heading dm-visible-month');
         visibleMonth.setAttribute('aria-label', 'Month at visible start');
         for (let i = 0; i < dates.length;) {
@@ -320,9 +322,8 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
             const stats = lifetimeStats?.get(r.id);
             if (stats) for (const [index, value] of routineStatValues(stats).entries()) {
                 const cell = el(row, 'span', `dm-board-stat${index === 0 ? ' is-first' : ''}`);
-                cell.setAttribute('aria-label', `${ROUTINE_STAT_LABELS[index][0]}: ${value}${index === 3 ? `, ${routineRateCount(stats)}` : ''}`);
+                cell.setAttribute('aria-label', `${ROUTINE_STAT_LABELS[index][0]}: ${value}`);
                 el(cell, 'strong', 'dm-routine-stat-value', value);
-                if (index === 3) el(cell, 'span', 'dm-routine-stat-count', routineRateCount(stats));
             }
         }
         if (paginated) {
@@ -347,7 +348,6 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
                     const item = el(list, 'div', 'dm-routine-stat-item');
                     const term = el(item, 'dt', '', ROUTINE_STAT_LABELS[index][0]); term.title = ROUTINE_STAT_LABELS[index][1];
                     const description = el(item, 'dd'); el(description, 'strong', 'dm-routine-stat-value', value);
-                    if (index === 3) el(description, 'span', 'dm-routine-stat-count', routineRateCount(stats));
                 }
                 el(detail, 'p', 'dm-task-meta', 'Lifetime. Unfinished today is excluded from the completion rate.');
             };
@@ -364,11 +364,12 @@ function renderBoard(parent: HTMLElement, plugin: DaymarkPlugin, count = 28, sta
         };
         const fitPage = () => {
             if (!paginated || !scroll.isConnected || !scroll.clientWidth) return false;
-            const labelWidth = nameHeader.getBoundingClientRect().width;
+            const labelWidth = Number.parseFloat(host.ownerDocument.defaultView?.getComputedStyle(host).getPropertyValue('--dm-board-label-width') ?? '') || 112;
             const inlineStats = boardShowsInlineStats(scroll.clientWidth, Platform.isMobile);
-            const needed = boardDaysForWidth(scroll.clientWidth, labelWidth, count, inlineStats ? BOARD_STATS_WIDTH : 0);
-            if (needed === pageDays && inlineStats === (state.inlineStats === true)) return false;
-            state.days = needed; state.inlineStats = inlineStats; draw(end); return true;
+            const stackedLabels = !inlineStats && boardShowsStackedLabels(scroll.clientWidth, labelWidth);
+            const needed = boardDaysForWidth(scroll.clientWidth, stackedLabels ? 0 : labelWidth, count, inlineStats ? BOARD_STATS_WIDTH : 0);
+            if (needed === pageDays && inlineStats === (state.inlineStats === true) && stackedLabels === (state.stackedLabels === true)) return false;
+            state.days = needed; state.inlineStats = inlineStats; state.stackedLabels = stackedLabels; draw(end); return true;
         };
         if (!paginated) scroll.addEventListener('scroll', () => { if (!scroll.isConnected) return; state.scrollLeft = scroll.scrollLeft; state.followEnd = scroll.scrollWidth - scroll.clientWidth - scroll.scrollLeft < 2; updateMonth(); }, { passive: true });
         const place = () => {

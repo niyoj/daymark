@@ -19,4 +19,3 @@ export const ROUTINE_STAT_LABELS = [
 export function routineStatValues(stats: LifetimeRoutineStats) {
     return [String(stats.current), String(stats.longest), String(stats.completedDays), stats.rate === null ? '—' : `${Math.round(stats.rate * 100)}%`];
 }
-export function routineRateCount(stats: LifetimeRoutineStats) { return `${stats.completedDays} of ${stats.eligibleDays} scheduled days`; }

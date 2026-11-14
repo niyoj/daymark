@@ -58,7 +58,7 @@ view: habit-board
 
 ![Habit Board with routine colors, month labels, and date navigation](docs/images/habit-board.png)
 
-**Habit Board is the default.** An empty `habit-board` block opens this view. The note’s available width determines how many complete date columns fit. The board pages with the arrows and has no internal scrolling. Select a day to inspect tasks, correct a check-in, or use an eligible freeze.
+**Habit Board is the default.** An empty `habit-board` block opens this view. At least seven date columns stay visible. In very narrow panes, routine names sit above their date cells. The available width determines how many additional dates fit. The board pages with the arrows and has no internal scrolling. Select a day to inspect tasks, correct a check-in, or use an eligible freeze.
 
 **Routine stats** use each routine’s full history, independently of the dates you are browsing. Wide panes show four columns beside the grid, aligned with each routine. In narrow panes and on mobile, select a routine name (click, tap, Enter, or Space) to show its stats below the board.
 
@@ -69,7 +69,7 @@ view: habit-board
 | **Days completed** | The total number of scheduled days on which all due tasks were completed. |
 | **Completion rate** | Completed scheduled days divided by eligible scheduled days across the routine’s full history. |
 
-Completion rate includes its count, for example **84%** and **42 of 50 scheduled days**. Unscheduled days and future dates are excluded. An unfinished today joins the denominator only after the day ends; a completed today joins immediately. A frozen past day is scheduled but does not add a completion. With no eligible days, the rate is **—**. There is no Rate period selector.
+Completion rate displays the percentage only, for example **84%**. Unscheduled days and future dates are excluded. An unfinished today joins the denominator only after the day ends; a completed today joins immediately. A frozen past day is scheduled but does not add a completion. With no eligible days, the rate is **—**. There is no Rate period selector.
 
 ![Routine stats below the board in a narrow pane](docs/images/routine-stats-light-390.png)
 

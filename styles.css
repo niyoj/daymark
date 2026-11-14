@@ -351,21 +351,21 @@
 .dm-root .dm-month-name-hidden { visibility: hidden; }
 
 /* Lifetime stats belong only to the paged Markdown Habit Board. */
+.dm-board-host.is-paginated { --dm-board-label-width: 112px; }
 .dm-board-host.is-paginated .dm-board-stat,
 .dm-board-host.is-paginated .dm-board-stat-heading,
 .dm-board-host.is-paginated .dm-routine-stats-heading { display: none; }
 .dm-board-host.is-paginated .dm-board-row:not(.dm-month-row):not(.dm-column-headings) { min-height: 44px; }
-.dm-board-host.has-inline-stats .dm-board-row { grid-template-columns: 112px repeat(var(--dm-days), 27px) 76px 76px 82px 114px; }
+.dm-board-host.has-inline-stats .dm-board-row { grid-template-columns: var(--dm-board-label-width) repeat(var(--dm-days), 27px) 76px 76px 82px 80px; }
 .dm-board-host.has-inline-stats .dm-board-row:not(.dm-month-row):not(.dm-column-headings) > .dm-board-label { display: flex; align-items: center; }
 .dm-board-host.has-inline-stats .dm-board-label::before { flex: 0 0 5px; }
 .dm-board-routine-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dm-board-host.has-inline-stats .dm-board-stat,
 .dm-board-host.has-inline-stats .dm-board-stat-heading { display: flex; flex-direction: column; align-items: center; justify-content: center; align-self: stretch; min-width: 0; text-align: center; padding: 4px; }
-.dm-board-host.has-inline-stats .dm-routine-stats-heading { display: block; grid-column: span 4; border-inline-start: 1px solid var(--dm-line); padding: 4px 12px; font-size: 12px; font-weight: 600; }
+.dm-board-host.has-inline-stats .dm-routine-stats-heading { display: block; grid-column: span 4; border-inline-start: 1px solid var(--dm-line); padding: 4px 12px; font-size: 12px; font-weight: 600; text-align: center; }
 .dm-board-host.has-inline-stats .dm-board-stat-heading { font-size: 11px; line-height: 1.3; color: var(--text-muted); }
 .dm-board-host.has-inline-stats .is-first { border-inline-start: 1px solid var(--dm-line); }
 .dm-routine-stat-value { font-size: 14px; line-height: 1.35; font-weight: 600; color: var(--text-normal); font-variant-numeric: tabular-nums; }
-.dm-routine-stat-count { display: block; font-size: 10px; line-height: 1.3; color: var(--text-muted); margin-top: 2px; overflow-wrap: anywhere; }
 .dm-board-host.is-paginated .dm-board-routine-button { display: block; position: sticky; min-height: 44px; height: auto; padding: 6px 20px 6px 6px; border: 0; border-radius: 0; background: var(--dm-surface); color: var(--text-normal); text-align: left; font-size: 11px; white-space: nowrap; }
 .dm-board-host.is-paginated .dm-board-routine-button[aria-expanded=true] { background: var(--background-modifier-hover); }
 .dm-routine-stats-chevron { display: inline-flex; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
@@ -377,5 +377,13 @@
 .dm-routine-stats-list { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; margin: 0 0 12px; }
 .dm-routine-stat-item dt { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
 .dm-routine-stat-item dd { margin: 0; }
-.dm-routine-stat-item .dm-routine-stat-count { font-size: 11px; }
 .dm-routine-stats-detail > .dm-task-meta { font-size: 11px; line-height: 1.45; }
+.dm-board-host.has-stacked-labels .dm-board { width: 100%; min-width: 0; }
+.dm-board-host.has-stacked-labels .dm-board-row { grid-template-columns: repeat(var(--dm-days), minmax(0,1fr)); grid-auto-flow: row; }
+.dm-board-host.has-stacked-labels .dm-board-label { grid-column: 1 / -1; }
+.dm-board-host.has-stacked-labels .dm-column-headings > .dm-board-label { display: none; }
+.dm-board-host.has-stacked-labels .dm-month-row.is-single-month > .dm-visible-month { display: none; }
+.dm-board-host.has-stacked-labels .dm-board-routine-button { position: relative; width: 100%; }
+.dm-board-host.has-stacked-labels .dm-cell { justify-self: center; max-width: 100%; height: auto; min-height: 0; aspect-ratio: 1; }
+.dm-board-host.has-stacked-labels .dm-date-label { min-width: 0; }
+@media (max-width: 420px) { .dm-board-host.is-paginated { --dm-board-label-width: 94px; } }

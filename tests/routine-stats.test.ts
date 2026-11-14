@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRoutine, emptyData, toggleCheckin, setFreeze, updateRoutine, addDays, dateRange } from '../src/domain.ts';
-import { lifetimeRoutineStats, routineStatValues, routineRateCount } from '../src/routine-stats.ts';
+import { lifetimeRoutineStats, routineStatValues } from '../src/routine-stats.ts';
 const today='2026-11-14', daily=[0,1,2,3,4,5,6];
 function create(weekdays=daily, start='2026-11-01') {
   const data=createRoutine(emptyData(),{name:'Routine',color:'#249c03',tasks:[{name:'Task',weekdays}]},start);
@@ -13,7 +13,6 @@ test('lifetime daily counts include all history and omit an unfinished today',()
   const stats=lifetimeRoutineStats(data,id,today);
   assert.deepEqual(stats,{current:0,longest:42,completedDays:42,eligibleDays:50,rate:.84});
   assert.deepEqual(routineStatValues(stats),['0','42','42','84%']);
-  assert.equal(routineRateCount(stats),'42 of 50 scheduled days');
 });
 test('custom weekday schedule excludes rest days and partial routine days earn no completion',()=>{
   let {data,id,task}=create([1,3,5]);
