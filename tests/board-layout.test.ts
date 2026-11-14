@@ -16,7 +16,8 @@ test('Habit Board fits whole fixed-size date cells into desktop and narrow panes
     assert.equal(boardDaysForWidth(0),28);
 });
 
-test('desktop stats reserve room while retaining complete date columns',()=>{
+test('compact desktop stats reserve room while retaining complete date columns',()=>{
+    assert.equal(boardDaysForWidth(664,112,28,BOARD_STATS_WIDTH),9);
     for(const width of [664,720,900,1200,1600]){
         const days=boardDaysForWidth(width,112,28,BOARD_STATS_WIDTH);
         assert.ok(days>=7);
